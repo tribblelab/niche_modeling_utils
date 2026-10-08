@@ -1,6 +1,7 @@
 using CSV, DataFrames
 using RCall
-using Dates
+
+# needs fileutils.jl (load_taxa_data, load_georef_df, latest_raw_file, resolve_clean_file)
 
 R"""
 library(ggplot2)
@@ -123,10 +124,15 @@ const RPLOT_BLOCK = """
         georef_dir,
         filtered_dir,
         shapefile_path = "data/bot_country_shapefiles/level3.shp",
-        append_date    = true)
+        append_date    = true,
+        species_ranges_path = nothing)
 
 Display a before/after occurrence map for a single `taxa` string in the R
 graphics viewer (no PDF output).
+
+If `append_date` is true, the raw file is the most recently pulled
+`<taxon>-<date>.csv` in `raw_dir`; otherwise it's `<taxon>.csv`.
+`species_ranges_path` is passed on to `load_taxa_data`.
 
 # Example
 ```julia
@@ -141,14 +147,15 @@ function plot_species(taxa::String;
     filtered_dir::String,
     shapefile_path::String="data/bot_country_shapefiles/level3.shp",
     append_date::Bool=true,
+    species_ranges_path::Union{String,Nothing}=nothing,
     only_clean=false,
     min_points=0
 )
-    _, taxa_to_nativerange_dict = load_taxa_data(traits_path)
+    _, taxa_to_nativerange_dict = load_taxa_data(traits_path; species_ranges_path=species_ranges_path)
     load_bot_regions(shapefile_path)
 
     filename = replace(taxa, " " => "_")
-    raw_file = append_date ? joinpath(raw_dir, "$(filename)-$(Dates.format(Dates.today(), "yyyy_mm_dd")).csv") : joinpath(raw_dir, "$(filename).csv")
+    raw_file = append_date ? first(latest_raw_file(filename, raw_dir)) : joinpath(raw_dir, "$(filename).csv")
     clean_file = resolve_clean_file(filename, clean_dir)
 
     isfile(raw_file) || error("Raw file not found: $raw_file")
@@ -188,11 +195,12 @@ end
         filtered_dir,
         pdf_file,
         shapefile_path = "data/bot_country_shapefiles/level3.shp",
-        append_date    = true)
+        append_date    = true,
+        species_ranges_path = nothing)
 
-Iterate over every taxon in `traits_path`, build a before/after occurrence map
-for each, and write all pages to `pdf_file`.  Returns the number of taxa
-successfully plotted.
+Iterate over every taxon in `traits_path` (plus those in `species_ranges_path`,
+if given), build a before/after occurrence map for each, and write all pages to
+`pdf_file`.  Returns the number of taxa successfully plotted.
 """
 function plot_all_occurrence_maps(;
     traits_path::String,
@@ -203,10 +211,11 @@ function plot_all_occurrence_maps(;
     shapefile_path::String="data/bot_country_shapefiles/level3.shp",
     pdf_file::String,
     append_date::Bool=true,
+    species_ranges_path::Union{String,Nothing}=nothing,
     only_clean=false,
     min_points=15
 )
-    taxa_traits, taxa_to_nativerange_dict = load_taxa_data(traits_path)
+    taxa_traits, taxa_to_nativerange_dict = load_taxa_data(traits_path; species_ranges_path=species_ranges_path)
     load_bot_regions(shapefile_path)
 
     @rput pdf_file
@@ -218,7 +227,7 @@ function plot_all_occurrence_maps(;
         println("Processing $idx/$(length(taxa_traits.scientificName)): $taxa")
 
         filename = replace(taxa, " " => "_")
-        raw_file = append_date ? joinpath(raw_dir, "$(filename)-$(Dates.format(Dates.today(), "yyyy_mm_dd")).csv") : joinpath(raw_dir, "$(filename).csv")
+        raw_file = append_date ? first(latest_raw_file(filename, raw_dir)) : joinpath(raw_dir, "$(filename).csv")
         clean_file = resolve_clean_file(filename, clean_dir)
 
         if !isfile(raw_file) || isempty(clean_file)
