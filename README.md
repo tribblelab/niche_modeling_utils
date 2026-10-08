@@ -2,7 +2,7 @@
 
 ## to instantiate Julia pkgs for the first time:
 
-to instantiate / load packages from `\niche_modelingutils` directory:
+to instantiate / load packages from `\niche_modeling_utils` directory:
 
 `julia --project`
 
