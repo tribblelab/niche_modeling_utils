@@ -25,10 +25,10 @@ if(length(new_packages)) install.packages(new_packages)
 there's no package (yet), so `include` the files you need. `fileutils.jl` goes first, since the others use it:
 
 ```{julia}
-include("niche-modeling-utils/scripts/fileutils.jl")
-include("niche-modeling-utils/scripts/occpulling.jl")
-include("niche-modeling-utils/scripts/datacleaning.jl")
-include("niche-modeling-utils/scripts/plottingutils.jl")
+include("niche_modeling_utils/scripts/fileutils.jl")
+include("niche_modeling_utils/scripts/occpulling.jl")
+include("niche_modeling_utils/scripts/datacleaning.jl")
+include("niche_modeling_utils/scripts/plottingutils.jl")
 ```
 
 | file | functions |
