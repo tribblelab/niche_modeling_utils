@@ -6,7 +6,7 @@ to instantiate / load packages from `\niche_modeling_utils` directory:
 
 `julia --project`
 
-```{julia}
+```julia
 using Pkg
 # install the packages listed in the environment
 Pkg.instantiate()
@@ -14,7 +14,7 @@ Pkg.instantiate()
 
 ## R package dependencies + install
 
-```{R}
+```R
 packages <- c("gatoRs", "ggplot2", "sf", "ggspatial", "gridExtra", "CoordinateCleaner", "readxl", "dplyr")
 new_packages <- packages[!(packages %in% installed.packages()[,"Package"])]
 if(length(new_packages)) install.packages(new_packages)
@@ -24,7 +24,7 @@ if(length(new_packages)) install.packages(new_packages)
 
 there's no package (yet), so `include` the files you need. `fileutils.jl` goes first, since the others use it:
 
-```{julia}
+```julia
 include("niche_modeling_utils/scripts/fileutils.jl")
 include("niche_modeling_utils/scripts/occpulling.jl")
 include("niche_modeling_utils/scripts/datacleaning.jl")
@@ -48,7 +48,7 @@ the functions expect one file per taxon, named with the taxon (spaces → unders
 
 a typical run:
 
-```{julia}
+```julia
 # taxon => its synonyms (names, or (name, authority) tuples)
 pull_occurrences(synonymdict, "data/pt_occs_raw")
 stats = clean_occurrences(synonymdict, "data/pt_occs_raw", "data/pt_occs_clean", "data/pt_occs_to_georeference")
