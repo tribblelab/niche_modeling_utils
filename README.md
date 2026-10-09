@@ -33,10 +33,10 @@ include("niche_modeling_utils/scripts/plottingutils.jl")
 
 | file | functions |
 |---|---|
-| `checklistutils.jl` | `build_checklist`: build a WCVP/POWO name checklist for a family + genus |
+| `checklistutils.jl` | `build_checklist`: build a WCVP/POWO name checklist for a family + genus; then `checklist_synonyms`, `checklist_native_range` & `checklist_homonyms` to get each taxon's synonyms, native range & homonyms out of it |
 | `occpulling.jl` | `pull_occurrences` (GBIF / iDigBio, via gatoRs), `append_occurrences` |
-| `fileutils.jl` | find & load per-taxon files: `latest_raw_file`, `resolve_clean_file`, `taxon_stem`, `load_taxa_data`, `load_georef_df`, `load_pt_occs_df` |
-| `datacleaning.jl` | `find_homonyms_to_exclude`, `clean_occurrences` (batch gatoRs cleaning), `filter_coords`, `filter_countries`, `filter_scientific_names`, `prepare_geolocate_files` |
+| `fileutils.jl` | find & load per-taxon files: `latest_raw_file`, `resolve_clean_file`, `latest_no_coords_file`, `taxon_files`, `taxon_stem`, `read_occs`, `normalize_id`, `load_taxa_data`, `read_georef_file`, `load_georef_df`, `load_pt_occs_df` |
+| `datacleaning.jl` | `find_homonyms_to_exclude`, `clean_occurrences` (batch gatoRs cleaning), `prepare_geolocate_files`, `merge_georef`, `carry_over_georef`; filters as masks (`coords_mask`, `countries_mask`, `names_mask`, applied & logged with `remove_rows`) or file to file (`filter_coords`, `filter_countries`, `filter_scientific_names`); `plot_kept_removed` |
 | `plottingutils.jl` | `plot_species`, `plot_all_occurrence_maps` |
 
 the functions expect one file per taxon, named with the taxon (spaces → underscores) & the date it was pulled:
@@ -44,7 +44,7 @@ the functions expect one file per taxon, named with the taxon (spaces → unders
 - raw occurrences: `<taxon>-<yyyy_mm_dd>.csv`
 - cleaned occurrences: `<taxon>-<yyyy_mm_dd>_cleaned.csv`
 - occurrences with no coordinates: `<taxon>-<yyyy_mm_dd>_no_coords.csv`
-- cleaned + georeferenced occurrences: `<taxon>_georef_merged.csv`
+- final occurrences (cleaned + georeferenced + filtered): `<taxon>.csv`
 
 a typical run:
 

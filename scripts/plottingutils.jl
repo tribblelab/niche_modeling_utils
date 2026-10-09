@@ -122,7 +122,7 @@ const RPLOT_BLOCK = """
         raw_dir,
         clean_dir,
         georef_dir,
-        filtered_dir,
+        filtered_dir   = nothing,
         shapefile_path = "data/bot_country_shapefiles/level3.shp",
         append_date    = true,
         species_ranges_path = nothing)
@@ -133,6 +133,8 @@ graphics viewer (no PDF output).
 If `append_date` is true, the raw file is the most recently pulled
 `<taxon>-<date>.csv` in `raw_dir`; otherwise it's `<taxon>.csv`.
 `species_ranges_path` is passed on to `load_taxa_data`.
+If `filtered_dir` is given & has a file for the taxon, those points are plotted
+instead of the ones in `clean_dir`.
 
 # Example
 ```julia
@@ -144,7 +146,7 @@ function plot_species(taxa::String;
     raw_dir::String,
     clean_dir::String,
     georef_dir::String,
-    filtered_dir::String,
+    filtered_dir::Union{String,Nothing}=nothing,
     shapefile_path::String="data/bot_country_shapefiles/level3.shp",
     append_date::Bool=true,
     species_ranges_path::Union{String,Nothing}=nothing,
@@ -159,10 +161,11 @@ function plot_species(taxa::String;
     clean_file = resolve_clean_file(filename, clean_dir)
 
     isfile(raw_file) || error("Raw file not found: $raw_file")
-    isempty(clean_file) && error("No cleaned or georef_merged file found for: $taxa")
+    isempty(clean_file) && error("No cleaned file found for: $taxa")
 
-    filtered_file = joinpath(filtered_dir, basename(clean_file))
-    if isfile(filtered_file)
+    # plot the filtered version of the cleaned points, if there is one
+    filtered_file = isnothing(filtered_dir) ? "" : resolve_clean_file(filename, filtered_dir)
+    if !isempty(filtered_file)
         clean_file = filtered_file
     end
 
@@ -192,7 +195,7 @@ end
         raw_dir,
         clean_dir,
         georef_dir,
-        filtered_dir,
+        filtered_dir   = nothing,
         pdf_file,
         shapefile_path = "data/bot_country_shapefiles/level3.shp",
         append_date    = true,
@@ -201,13 +204,14 @@ end
 Iterate over every taxon in `traits_path` (plus those in `species_ranges_path`,
 if given), build a before/after occurrence map for each, and write all pages to
 `pdf_file`.  Returns the number of taxa successfully plotted.
+If `filtered_dir` is given, a taxon's file there is plotted instead of the one in `clean_dir`.
 """
 function plot_all_occurrence_maps(;
     traits_path::String,
     raw_dir::String,
     clean_dir::String,
     georef_dir::String,
-    filtered_dir::String,
+    filtered_dir::Union{String,Nothing}=nothing,
     shapefile_path::String="data/bot_country_shapefiles/level3.shp",
     pdf_file::String,
     append_date::Bool=true,
@@ -235,8 +239,9 @@ function plot_all_occurrence_maps(;
             continue
         end
 
-        filtered_file = joinpath(filtered_dir, basename(clean_file))
-        if isfile(filtered_file)
+        # plot the filtered version of the cleaned points, if there is one
+        filtered_file = isnothing(filtered_dir) ? "" : resolve_clean_file(filename, filtered_dir)
+        if !isempty(filtered_file)
             clean_file = filtered_file
         end
 
